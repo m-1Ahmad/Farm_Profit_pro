@@ -166,14 +166,15 @@ class SignupView(APIView):
 </body>
 </html>
         """
-
-                send_mail(
+                from django.core.mail import EmailMessage
+                email = EmailMessage(
                     subject="Verify your email - Farm Profit Pro",
-                    message=message,
+                    body=message,
                     from_email="noreply@farmprofitpro.com",
-                    recipient_list=[user.email],
-                    fail_silently=False,
+                    to=[user.email]
                 )
+                email.content_subtype = "html"
+                email.send()
                 return Response({"message": "User created successfully. Please check your email for verification."}, status=201)
 
             return Response(serializer.errors, status=400)
@@ -194,9 +195,14 @@ class VerifyEmailView(APIView):
                 user.is_verified = True
                 user.save()
                 return Response({"message": "Email verified successfully."})
-            return Response({"error": "Invalid token."}, status=400)
-        except:
-            return Response({"error": "Verification failed."}, status=400)
+            return Response({"error": "Invalid or expired token."}, status=400)
+        except (TypeError, ValueError, OverflowError):
+            return Response({"error": "Invalid verification link."}, status=400)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=404)
+        except Exception as e:
+            print("Verification error:", e)
+            return Response({"error": "Verification failed. Please try again."}, status=500)
 
 class LoginView(APIView):
     def post(self, request):

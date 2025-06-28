@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Sprout } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 function Navbar() {
